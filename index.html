@@ -3,46 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Animated Tree</title>
+    <title>Merry Christmas</title>
     <style>
         body {
             margin: 0;
             overflow: hidden;
-            background-color: #000;
+            background-color: #001f3f;
+            color: white;
+            font-family: 'Arial', sans-serif;
         }
         canvas {
             display: block;
+        }
+        .message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4rem;
+            font-weight: bold;
+            color: gold;
+            text-shadow: 0 0 10px gold, 0 0 20px orange;
+            animation: fadeIn 3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
         }
     </style>
 </head>
 <body>
     <canvas id="treeCanvas"></canvas>
+    <div class="message" id="christmasMessage">Merry Christmas</div>
     <script>
         const canvas = document.getElementById('treeCanvas');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
-        function drawTree(x, y, angle, depth, branchWidth, color1, color2) {
-            if (depth === 0) return;
+        // Firework Effect
+        class Firework {
+            constructor(x, y, colors) {
+                this.x = x;
+                this.y = y;
+                this.colors = colors;
+                this.particles = [];
+                for (let i = 0; i < 100; i++) {
+                    this.particles.push({
+                        x: this.x,
+                        y: this.y,
+                        vx: (Math.random() - 0.5) * 5,
+                        vy: (Math.random() - 0.5) * 5,
+                        alpha: 1
+                    });
+                }
+            }
+            update() {
+                this.particles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.alpha -= 0.01;
+                });
+            }
+            draw(ctx) {
+                this.particles.forEach(p => {
+                    if (p.alpha > 0) {
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(${this.colors},${p.alpha})`;
+                        ctx.fill();
+                    }
+                });
+            }
+        }
 
-            const newX = x + Math.cos(angle) * depth * 10;
-            const newY = y + Math.sin(angle) * depth * 10;
+        const fireworks = [
+            new Firework(canvas.width / 2, canvas.height / 4, '255,215,0'),
+            new Firework(canvas.width / 2 - 100, canvas.height / 4 + 50, '255,69,0'),
+            new Firework(canvas.width / 2 + 100, canvas.height / 4 + 50, '30,144,255')
+        ];
 
+        // Christmas Tree with Lights
+        function drawTree() {
+            ctx.fillStyle = '#228B22';
             ctx.beginPath();
-            ctx.lineWidth = branchWidth;
-            ctx.strokeStyle = depth % 2 === 0 ? color1 : color2;
-            ctx.moveTo(x, y);
-            ctx.lineTo(newX, newY);
-            ctx.stroke();
+            ctx.moveTo(canvas.width / 2, canvas.height / 3);
+            ctx.lineTo(canvas.width / 2 - 100, canvas.height);
+            ctx.lineTo(canvas.width / 2 + 100, canvas.height);
+            ctx.closePath();
+            ctx.fill();
 
-            drawTree(newX, newY, angle - Math.random() * 0.7, depth - 1, branchWidth * 0.7, color1, color2);
-            drawTree(newX, newY, angle + Math.random() * 0.7, depth - 1, branchWidth * 0.7, color1, color2);
+            // Lights
+            for (let i = 0; i < 50; i++) {
+                const x = canvas.width / 2 + (Math.random() - 0.5) * 150;
+                const y = canvas.height - Math.random() * canvas.height / 3;
+                ctx.beginPath();
+                ctx.arc(x, y, 5, 0, Math.PI * 2);
+                ctx.fillStyle = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                ctx.fill();
+            }
         }
 
         function animate() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawTree(canvas.width / 2, canvas.height, -Math.PI / 2, 10, 10, '#8FBC8F', '#2E8B57');
+
+            drawTree();
+            fireworks.forEach(firework => {
+                firework.update();
+                firework.draw(ctx);
+            });
+
             requestAnimationFrame(animate);
         }
 
@@ -52,6 +122,11 @@
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
         });
+
+        // Hide message after 5 seconds
+        setTimeout(() => {
+            document.getElementById('christmasMessage').style.display = 'none';
+        }, 5000);
     </script>
 </body>
 </html>
